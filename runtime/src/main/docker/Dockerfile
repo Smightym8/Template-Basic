@@ -1,21 +1,32 @@
-# -buster is required to have apt available
-FROM eclipse-temurin:24_36-jre-alpine
+FROM eclipse-temurin:24_36-jre-alpine AS base
+WORKDIR /app
+EXPOSE 8080
 
 # Optional JVM arguments, such as memory settings
 ARG JVM_ARGS=""
-ARG JAR
-
-RUN apk --no-cache add curl
-
-WORKDIR /app
-
-
-COPY ${JAR} runtime.jar
-
-EXPOSE 8080
 
 ENV WEB_HTTP_PORT="8080"
 ENV WEB_HTTP_PATH="/"
+
+FROM eclipse-temurin:21 AS build
+WORKDIR /project
+COPY gradlew .
+COPY settings.gradle.kts .
+COPY build.gradle.kts .
+COPY gradle.properties .
+COPY gradle ./gradle
+RUN chmod +x gradlew
+RUN apt update -y && apt upgrade -y
+RUN apt install -y dos2unix
+RUN dos2unix gradlew
+COPY runtime ./runtime
+RUN ./gradlew build -x test -x check
+
+# -buster is required to have apt available
+FROM base AS final
+
+RUN apk --no-cache add curl
+COPY --from=build /project/runtime/build/libs/runtime.jar runtime.jar
 
 HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8080/api/check/health
 
