@@ -37,6 +37,4 @@ dependencyResolutionManagement {
 }
 
 // add dependencies
-include(":extensions:example-extension")
-include(":runtimes:controlplane")
-include(":runtimes:dataplane")
+include(":runtime")

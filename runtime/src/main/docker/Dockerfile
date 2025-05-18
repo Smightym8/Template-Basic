@@ -9,7 +9,13 @@ RUN apk --no-cache add curl
 
 WORKDIR /app
 
-COPY ${JAR} edc-dataplane.jar
+
+COPY ${JAR} runtime.jar
+
+EXPOSE 8080
+
+ENV WEB_HTTP_PORT="8080"
+ENV WEB_HTTP_PATH="/"
 
 HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8080/api/check/health
 
@@ -17,4 +23,4 @@ HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://local
 # ARG can not be used in ENTRYPOINT so storing value in an ENV variable
 ENV ENV_JVM_ARGS=$JVM_ARGS
 # use the "exec" syntax so that SIGINT reaches the JVM -> graceful termination
-CMD ["sh", "-c", "exec java -Djava.security.egd=file:/dev/urandom -jar edc-dataplane.jar"]
+CMD ["sh", "-c", "exec java -Djava.security.egd=file:/dev/urandom -jar runtime.jar"]

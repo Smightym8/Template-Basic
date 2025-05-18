@@ -41,16 +41,5 @@ allprojects {
             // override default dependency versions here
             metaModel.set(metaModelVersion)
         }
-        pom {
-            scmUrl.set("https://github.com/OWNER/REPO.git")
-            scmConnection.set("scm:git:git@github.com:OWNER/REPO.git")
-            developerName.set("yourcompany")
-            developerEmail.set("admin@yourcompany.com")
-            projectName.set("your cool project based on EDC")
-            projectUrl.set("www.coolproject.com")
-            description.set("your description")
-            licenseUrl.set("https://opensource.org/licenses/MIT")
-        }
     }
-
 }

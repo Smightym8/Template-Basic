@@ -43,12 +43,10 @@ plugins {
 }
 
 dependencies {
-    runtimeOnly(libs.edc.bom.dataplane)
-
-    // uncomment the following lines to compile with Hashicorp Vault and Postgres persistence
-    // runtimeOnly(libs.edc.vault.hashicorp)
-    // runtimeOnly(libs.edc.bom.dataplane.sql)
-
+    // Add dependencies
+    // implementation("org.eclipse.edc:boot:0.12.0")
+    // implementation("org.eclipse.edc:connector-core:0.12.0")
+    // implementation("org.eclipse.edc:http:0.12.0")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
