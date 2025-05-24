@@ -14,32 +14,66 @@
 
 
 plugins {
-    `java-library`
+    id("application")
+    alias(libs.plugins.edc.build)
+    alias(libs.plugins.shadow)
+    alias(libs.plugins.docker)
 }
 
+val edcVersion: String by project
 val annotationProcessorVersion: String by project
 val metaModelVersion: String by project
 
-buildscript {
-    dependencies {
-        val edcGradlePluginsVersion: String by project
-        classpath("org.eclipse.edc.edc-build:org.eclipse.edc.edc-build.gradle.plugin:${edcGradlePluginsVersion}")
+dependencies {
+    // example dependencies, uncomment if needed
+    implementation("org.eclipse.edc:boot:$edcVersion")
+    implementation("org.eclipse.edc:connector-core:$edcVersion")
+    implementation("org.eclipse.edc:http:$edcVersion")
+}
+
+apply(plugin = "org.eclipse.edc.edc-build")
+
+repositories {
+    mavenCentral()
+}
+
+configure<org.eclipse.edc.plugins.autodoc.AutodocExtension> {
+    processorVersion.set(annotationProcessorVersion)
+    outputDirectory.set(layout.buildDirectory.asFile)
+}
+
+configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
+    versions {
+        metaModel.set(metaModelVersion)
     }
 }
 
-allprojects {
-    apply(plugin = "${group}.edc-build")
+application {
+    mainClass.set("org.eclipse.edc.boot.system.runtime.BaseRuntime")
+}
 
-    // configure which version of the annotation processor to use. defaults to the same version as the plugin
-    configure<org.eclipse.edc.plugins.autodoc.AutodocExtension> {
-        processorVersion.set(annotationProcessorVersion)
-        outputDirectory.set(project.layout.buildDirectory.asFile)
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    exclude("**/pom.properties", "**/pom.xml")
+    mergeServiceFiles()
+    archiveFileName.set("${project.name}.jar")
+}
+
+tasks.register("dockerize", com.bmuschko.gradle.docker.tasks.image.DockerBuildImage::class) {
+    val dockerContextDir = projectDir
+   
+    dockerFile.set(file("src/main/docker/Dockerfile"))
+    images.add("${project.name}:${project.version}")
+    images.add("${project.name}:latest")
+   
+    if (System.getProperty("platform") != null) {
+        platform.set(System.getProperty("platform"))
     }
 
-    configure<org.eclipse.edc.plugins.edcbuild.extensions.BuildExtension> {
-        versions {
-            // override default dependency versions here
-            metaModel.set(metaModelVersion)
-        }
-    }
+    inputDir.set(dockerContextDir)
+    dependsOn(tasks.named("shadowJar"))
+    doNotTrackState("Do not track state so that this task works on Windows")
+}
+
+edcBuild {
+    publish.set(false)
 }

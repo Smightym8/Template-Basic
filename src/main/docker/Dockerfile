@@ -10,23 +10,14 @@ ENV WEB_HTTP_PATH="/"
 
 FROM eclipse-temurin:21 AS build
 WORKDIR /project
-COPY gradlew .
-COPY settings.gradle.kts .
-COPY build.gradle.kts .
-COPY gradle.properties .
-COPY gradle ./gradle
-RUN chmod +x gradlew
-RUN apt update -y && apt upgrade -y
-RUN apt install -y dos2unix
-RUN dos2unix gradlew
-COPY runtime ./runtime
+COPY . .
 RUN ./gradlew build -x test -x check
 
 # -buster is required to have apt available
 FROM base AS final
 
 RUN apk --no-cache add curl
-COPY --from=build /project/runtime/build/libs/runtime.jar runtime.jar
+COPY --from=build project/build/libs/template.jar template.jar
 
 HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://localhost:8080/api/check/health
 
@@ -34,4 +25,4 @@ HEALTHCHECK --interval=5s --timeout=5s --retries=10 CMD curl --fail http://local
 # ARG can not be used in ENTRYPOINT so storing value in an ENV variable
 ENV ENV_JVM_ARGS=$JVM_ARGS
 # use the "exec" syntax so that SIGINT reaches the JVM -> graceful termination
-CMD ["sh", "-c", "exec java -Djava.security.egd=file:/dev/urandom -jar runtime.jar"]
+CMD ["sh", "-c", "exec java -Djava.security.egd=file:/dev/urandom -jar template.jar"]

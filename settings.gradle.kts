@@ -35,6 +35,3 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
-// add dependencies
-include(":runtime")
